@@ -11,10 +11,3 @@ def get_random_string(length=6, alpfabet=None):
 
 def record_exists(model, **fields):
     return model.query.filter_by(**fields).first() is not None
-
-
-
-
-
-if __name__ == '__main__':
-    print(get_random_string())

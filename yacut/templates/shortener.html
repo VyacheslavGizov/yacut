@@ -38,17 +38,24 @@
           <div class="col-sm">
           </div>
           <div class="col-sm">
-            {% with messages = get_flashed_messages() %}
+            {% with messages = get_flashed_messages(with_categories=true) %}
               {% if messages %}
-                {% for message in messages %}
-                  <p class="text-center">
-                    <h5 class="text-center">{{ message }}</h5>
-                  </p>
+                {% for category, message in messages %}
+                    {% if category == 'wrong_input' %}
+                    <p class="text-center">
+                      <h5 class="text-center">{{ message }}</h5>
+                    </p>
+                    {% elif category == 'link_is_done'%}
+                    <p class="text-center">
+                      <h5 class="text-center">Ваша новая ссылка готова:</h5>
+                    </p>
+                    <p class="text-center">
+                      <a class="nav-link" href="{{ url_for('redirect_view', short=short, _external=True) }}">
+                        {{ url_for('redirect_view', short=short, _external=True) }}
+                      </a>
+                    </p>
+                    {% endif %}
                 {% endfor %}
-              {% else %}
-                <p class="text-center">
-                  <h5 class="text-center">FFFFFFFF</h5>
-                </p>
               {% endif %}
             {% endwith %}
           </div>
