@@ -24,7 +24,7 @@ class URLShortenerForm(FlaskForm):
         validators=[
             Optional(),
             Length(1, 16, message=LENGTH_MESSAGE),
-            Regexp(r'(A-Z, a-z, 0-9)', message=WRONG_SHORT_URL)
+            Regexp(r'[A-Za-z0-9]', message=WRONG_SHORT_URL)  # хз какая регулярка
         ]
     )
     submit = SubmitField('Создать')
