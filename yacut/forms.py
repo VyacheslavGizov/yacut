@@ -11,7 +11,7 @@ WRONG_SHORT_URL = ('Допускаются: заглавные и прописн
 
 
 class URLShortenerForm(FlaskForm):
-    original = StringField(
+    original_link = StringField(
         'Длинная ссылка',
         validators=[
             DataRequired(message=REQUIRED_MESSAGE),
@@ -19,12 +19,12 @@ class URLShortenerForm(FlaskForm):
             URL(require_tld=False, message=WRONG_URL_FORMAT)
         ]
     )
-    short = StringField(
+    custom_id = StringField(
         'Ваш вариант короткой ссылки',
         validators=[
             Optional(),
-            Length(1, 16, message=LENGTH_MESSAGE),
-            Regexp(r'[A-Za-z0-9]', message=WRONG_SHORT_URL)  # хз какая регулярка, но она нужна
+            Length(1, 16, message=LENGTH_MESSAGE),  # ограничения на длину в сеттинги
+            Regexp(r'^[a-zA-Z0-9]+$', message=WRONG_SHORT_URL)  # хз какая регулярка, но она нужна
         ]
     )
     submit = SubmitField('Создать')

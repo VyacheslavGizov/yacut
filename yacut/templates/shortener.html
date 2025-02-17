@@ -16,14 +16,14 @@
               {{ form.csrf_token }}
               <div>
                 <div>
-                  {{ form.original(class="form-control form-control-lg py-2 mb-3", id="form-title",
-                    placeholder=form.original.label.text)}}
-                  {{ error_macros(form.original.errors) }}
+                  {{ form.original_link(class="form-control form-control-lg py-2 mb-3", id="form-title",
+                    placeholder=form.original_link.label.text)}}
+                  {{ error_macros(form.original_link.errors) }}
                 </div>
                 <div>
-                  {{ form.short(class="form-control form-control-lg py-2 mb-3", id="form-link",
-                    placeholder=form.short.label.text)}}
-                  {{ error_macros(form.short.errors) }}
+                  {{ form.custom_id(class="form-control form-control-lg py-2 mb-3", id="form-link",
+                    placeholder=form.custom_id.label.text)}}
+                  {{ error_macros(form.custom_id.errors) }}
                 </div>
                 {{ form.submit(class="btn btn-primary")}}
               </div>
@@ -47,13 +47,14 @@
                     </p>
                     {% elif category == 'link_is_done'%}
                     <p class="text-center">
-                      <h5 class="text-center">Ваша новая ссылка готова:</h5>
+                      <h5 class="text-center">{{ message }}</h5>
                     </p>
-                    <p class="text-center">
-                      <a class="nav-link" href="{{ url_for('redirect_view', short=short, _external=True) }}">
-                        {{ url_for('redirect_view', short=short, _external=True) }}
-                      </a>
-                    </p>
+                    <a href="{{ url_for('redirect_view', short=short, _external=True) }}">
+                      {{ url_for('redirect_view', short=short, _external=True) }}
+                    </a>
+                    <!-- <a class="nav-link" href="{{ url_for('redirect_view', short=short, _external=True) }}">
+                      {{ url_for('redirect_view', short=short, _external=True) }}
+                    </a> -->
                     {% endif %}
                 {% endfor %}
               {% endif %}
