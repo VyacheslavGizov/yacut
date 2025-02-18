@@ -1,17 +1,15 @@
 import random
-import string
-import re
-from http import HTTPStatus
 
-from .error_handlers import APIExceptions
+from .exceptions import DataBaseError
+from settings import AUTOGEN_SHORT_LINK_LENGTH, SHORT_LINK_ALPFABET
 
-SHORT_ID_ALPFABET = string.ascii_letters + string.digits
 
 MISSMATCH_MESSAGE = 'Не соответствует шаблону.'
+DB_ERROR_MESSAGE = 'При попытке записи в базу данных возникла ошибка: {error}'
 
 
-def get_unique_short_id(length=6, alpfabet=None):
-    alpfabet = SHORT_ID_ALPFABET if alpfabet is None else alpfabet
+def get_unique_short_id(length=AUTOGEN_SHORT_LINK_LENGTH, alpfabet=None):
+    alpfabet = SHORT_LINK_ALPFABET if alpfabet is None else alpfabet
     return ''.join(random.choice(alpfabet) for _ in range(length))
 
 
@@ -20,14 +18,10 @@ def get_records(model, **fields):
 
 
 def write_to_databese(db, model, **fields):
-    record = model(**fields)
-    db.session.add(record)
-    db.session.commit()
+    try:
+        record = model(**fields)
+        db.session.add(record)
+        db.session.commit()
+    except Exception as error:
+        raise DataBaseError(DB_ERROR_MESSAGE.format(error=error))
     return record
-
-
-def regex_validation(pattern, string, message=MISSMATCH_MESSAGE):
-    if re.fullmatch(pattern, string):
-        return string
-    else:
-        raise APIExceptions(message, HTTPStatus.BAD_REQUEST)  # Пока так, потом пересмотреть функцию, и эти вещи возвращать в вызывающем коде 
