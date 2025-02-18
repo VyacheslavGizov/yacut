@@ -8,7 +8,6 @@ from .exceptions import DataBaseError, EmptyError, ValidationError
 from .models import URLMap
 from .utils import get_records, get_unique_short_id, write_to_databese
 from .validators import link_validator
-from .views import get_exists_short_for_original
 from settings import (
     ORIGINAL_URL_MAX_LENGTH,
     ORIGINAL_URL_PATTERN,
@@ -55,11 +54,8 @@ def create_short_link():
             if get_records(URLMap, short=new_short):
                 raise ValidationError(DUPLICATE_SHORT_LINK)
         else:
-            exists_short = get_exists_short_for_original(original=original)
-            if not exists_short:
-                new_short = get_unique_short_id()
-        if new_short:
-            write_to_databese(db, URLMap, short=new_short, original=original)
+            new_short = get_unique_short_id()
+        write_to_databese(db, URLMap, short=new_short, original=original)
     except (EmptyError, ValidationError) as error:
         raise APIException(str(error), HTTPStatus.BAD_REQUEST)
     except DataBaseError as error:
@@ -71,7 +67,7 @@ def create_short_link():
             url=original,
             short_link=url_for(
                 'redirect_view',
-                short=(new_short or exists_short),
+                short=new_short,
                 _external=True
             )
         )),
