@@ -29,9 +29,8 @@ ORIGINAL_URL_KEY = 'url'
 SHORT_LINK_KEY = 'custom_id'
 
 
-
 @app.route('/api/id/', methods=['POST'])
-def api_create_short_link():
+def create_short_link():
     data = request.get_json(silent=True)
     try:
         if data is None:
@@ -85,4 +84,4 @@ def get_original_url(short_id):
     records = get_records(URLMap, short=short_id)
     if not records:
         raise APIException(SHORT_LINK_NOT_FOUND, HTTPStatus.NOT_FOUND)
-    return jsonify(dict(url=records[0].original)),  HTTPStatus.OK
+    return jsonify(dict(url=records[0].original)), HTTPStatus.OK

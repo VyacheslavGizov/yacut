@@ -20,7 +20,7 @@ SEND = 'Создать'
 
 
 class URLShortenerForm(FlaskForm):
-    original_link = StringField(
+    original_link = URLField(
         ORIGINAL_URL_LABEL,
         validators=[
             DataRequired(message=REQUIRED_MESSAGE),
