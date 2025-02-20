@@ -5,14 +5,15 @@ import re
 from flask import url_for
 
 from . import db
-from .exceptions import ValidationError
+from .exceptions import ValidationError, ShortGenerationError
 from settings import (
-    AUTOGEN_SHORT_LINK_LENGTH,
+    AUTOGEN_SHORT_LINK_LEN,
     ORIGINAL_URL_MAX_LENGTH,
     ORIGINAL_URL_PATTERN,
     SHORT_LINK_ALPFABET,
     SHORT_LINK_MAX_LENGTH,
     SHORT_LINK_PATTERN,
+    GENERATION_ATTEMPTS_LIMIT
 )
 
 
@@ -20,6 +21,7 @@ WRONG_LINK_MESSAGE = 'Недопустимое имя ссылки.'
 DUPLICATE_SHORT_LINK = 'Предложенный вариант короткой ссылки уже существует.'
 WRONG_ORIGINAL_URL = 'Указано недопустимое имя для длинной ссылки'
 WRONG_SHORT_URL = 'Указано недопустимое имя для короткой ссылки'
+GENERATION_ERROR = 'Не удалось сгенерировать короткую ссылку'
 
 
 class URLMap(db.Model):
@@ -30,9 +32,18 @@ class URLMap(db.Model):
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
     @staticmethod
-    def get_unique_short_id(length=AUTOGEN_SHORT_LINK_LENGTH):
-        return ''.join(
-            random.choice(SHORT_LINK_ALPFABET) for _ in range(length))
+    def get_unique_short_id():
+        for _ in range(GENERATION_ATTEMPTS_LIMIT):
+            short = ''.join(random.choices(SHORT_LINK_ALPFABET,
+                                           k=AUTOGEN_SHORT_LINK_LEN))
+            if not URLMap.get_record_by_fields(short=short):
+                return short
+            raise ShortGenerationError(GENERATION_ERROR)
+
+    # @staticmethod
+    # def get_unique_short_id(length=AUTOGEN_SHORT_LINK_LENGTH):
+    #     return ''.join(
+    #         random.choice(SHORT_LINK_ALPFABET) for _ in range(length))
 
     @staticmethod
     def validate_link(pattern, link, max_length, message=WRONG_LINK_MESSAGE):

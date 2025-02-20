@@ -17,3 +17,5 @@ class APIException(Exception):
 class ValidationError(ValueError):
     pass
 
+class ShortGenerationError(Exception):
+    pass

@@ -4,7 +4,7 @@ from flask import jsonify, request
 
 from . import app
 from .error_handlers import APIException
-from .exceptions import ValidationError
+from .exceptions import ValidationError, ShortGenerationError
 from .models import URLMap
 
 
@@ -33,6 +33,8 @@ def create_short_link():
         url_map = URLMap.create(short=short, original=original)
     except ValidationError as error:
         raise APIException(str(error), HTTPStatus.BAD_REQUEST)
+    except ShortGenerationError as error:
+        raise APIException(str(error), HTTPStatus.INTERNAL_SERVER_ERROR)
     return (
         jsonify(dict(url=original, short_link=url_map.get_short_url())),
         HTTPStatus.CREATED

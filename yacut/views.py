@@ -1,7 +1,9 @@
-from flask import flash, redirect, render_template
+from http import HTTPStatus
+
+from flask import flash, redirect, render_template, abort
 
 from . import app
-from .exceptions import ValidationError
+from .exceptions import ValidationError, ShortGenerationError
 from .forms import URLShortenerForm
 from .models import URLMap
 
@@ -23,8 +25,10 @@ def shortener_view():
             original=form.original_link.data
         )
     except ValidationError as error:
-        flash(str(error))
+        # flash(str(error))
         return render_template('index.html', form=form)
+    except ShortGenerationError:
+        abort(HTTPStatus.INTERNAL_SERVER_ERROR)
     return render_template(
         'index.html',
         form=form,
