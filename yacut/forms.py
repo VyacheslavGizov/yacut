@@ -37,3 +37,4 @@ class URLShortenerForm(FlaskForm):
         ]
     )
     submit = SubmitField(SEND)
+    # добавить валидацию короткой ссылки по базе данных

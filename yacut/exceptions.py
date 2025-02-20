@@ -14,13 +14,6 @@ class APIException(Exception):
         return dict(message=self.message)
 
 
-class DataBaseError(Exception):
-    pass
-
-
 class ValidationError(ValueError):
     pass
 
-
-class EmptyError(Exception):
-    pass
