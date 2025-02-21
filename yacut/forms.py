@@ -1,30 +1,24 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, URLField
-from wtforms.validators import DataRequired, Length, Optional, URL, Regexp
 from wtforms import ValidationError
+from wtforms.validators import DataRequired, Length, Optional, URL, Regexp
 
+from .models import NONUNIQUE_SHORT, URLMap
 from settings import (
     ORIGINAL_URL_MAX_LENGTH,
-    SHORT_LINK_MAX_LENGTH,
-    SHORT_LINK_PATTERN
+    SHORT_MAX_LENGTH,
+    SHORT_PATTERN
 )
-from .models import URLMap
 
 
 LENGTH_MESSAGE = 'Максимальная длина ссылки до %(max)d символов!'
 REQUIRED_MESSAGE = 'Это обязательное поле!'
-WRONG_URL_FORMAT = 'Недопустимый фомат URL!'
-WRONG_SHORT_URL = ('Недопустимое имя короткой ссылки! Разрешены '
-                   'заглавные и прописные латинские буквы, цифры от 0 до 9')
+WRONG_URL = 'Недопустимый фомат URL!'
+WRONG_SHORT = ('Недопустимое имя короткой ссылки! Разрешены '
+               'заглавные и прописные латинские буквы, цифры от 0 до 9')
 ORIGINAL_URL_LABEL = 'Длинная ссылка'
-SHORT_LINK_LABEL = 'Ваш вариант короткой ссылки'
+SHORT_LABEL = 'Ваш вариант короткой ссылки'
 SEND = 'Создать'
-DUPLICATE_SHORT_LINK = 'Предложенный вариант короткой ссылки уже существует.'
-
-
-def exist_validation(form, field):
-    if URLMap.get_record_by_fields(short=field.data):
-        raise ValidationError(DUPLICATE_SHORT_LINK)
 
 
 class URLShortenerForm(FlaskForm):
@@ -33,17 +27,19 @@ class URLShortenerForm(FlaskForm):
         validators=[
             DataRequired(message=REQUIRED_MESSAGE),
             Length(max=ORIGINAL_URL_MAX_LENGTH, message=LENGTH_MESSAGE),
-            URL(require_tld=False, message=WRONG_URL_FORMAT)
+            URL(require_tld=False, message=WRONG_URL)
         ]
     )
     custom_id = StringField(
-        SHORT_LINK_LABEL,
+        SHORT_LABEL,
         validators=[
             Optional(),
-            Length(max=SHORT_LINK_MAX_LENGTH, message=LENGTH_MESSAGE),
-            Regexp(SHORT_LINK_PATTERN, message=WRONG_SHORT_URL),
-            exist_validation
+            Length(max=SHORT_MAX_LENGTH, message=LENGTH_MESSAGE),
+            Regexp(SHORT_PATTERN, message=WRONG_SHORT)
         ]
     )
     submit = SubmitField(SEND)
-    # добавить валидацию короткой ссылки по базе данных
+
+    def validate_custom_id(form, field):
+        if URLMap.get_record(short=field.data):
+            raise ValidationError(NONUNIQUE_SHORT)

@@ -1,17 +1,11 @@
 from http import HTTPStatus
 
-from flask import flash, redirect, render_template, abort
+from flask import abort, redirect, render_template
 
 from . import app
-from .exceptions import ValidationError, ShortGenerationError
+from .exceptions import ShortGenerationError
 from .forms import URLShortenerForm
 from .models import URLMap
-
-
-DUPLICATE_SHORT_LINK = 'Предложенный вариант короткой ссылки уже существует.'
-LINK_IS_DONE = 'Ваша новая ссылка готова:'
-WRONG_DATA = 'wrong_input'
-DONE = 'link_is_done'
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -24,16 +18,12 @@ def shortener_view():
             short=form.custom_id.data,
             original=form.original_link.data
         )
-    except ValidationError as error:
-        # flash(str(error))
+    except ValueError:
         return render_template('index.html', form=form)
     except ShortGenerationError:
         abort(HTTPStatus.INTERNAL_SERVER_ERROR)
     return render_template(
-        'index.html',
-        form=form,
-        short=url_map.get_short_url()
-    )
+        'index.html', form=form, short=url_map.get_short_url())
 
 
 @app.route('/<short>')

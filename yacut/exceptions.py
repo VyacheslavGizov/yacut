@@ -14,8 +14,5 @@ class APIException(Exception):
         return dict(message=self.message)
 
 
-class ValidationError(ValueError):
-    pass
-
 class ShortGenerationError(Exception):
     pass
