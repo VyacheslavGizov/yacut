@@ -24,8 +24,9 @@ def create_short_link():
         return (
             jsonify(dict(
                 url=original,
-                short_link=URLMap.create(short=data.get('custom_id'),
-                                         original=original).get_short_url()
+                short_link=URLMap.create(
+                    short=data.get('custom_id'),
+                    original=original).get_short_url()
             )),
             HTTPStatus.CREATED
         )
@@ -37,7 +38,7 @@ def create_short_link():
 
 @app.route('/api/id/<short>/')
 def get_original_url(short):
-    url_map = URLMap.get(short=short)
+    url_map = URLMap.get(short)
     if not url_map:
         raise APIException(SHORT_NOT_FOUND, HTTPStatus.NOT_FOUND)
     return jsonify(dict(url=url_map.original)), HTTPStatus.OK

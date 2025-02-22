@@ -27,4 +27,4 @@ def shortener_view():
 
 @app.route('/<short>')
 def redirect_view(short):
-    return redirect(URLMap.get_or_404(short=short).original)
+    return redirect(URLMap.get_or_404(short).original)

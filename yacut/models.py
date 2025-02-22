@@ -20,7 +20,8 @@ WRONG_LINK = 'Недопустимое имя ссылки.'
 NONUNIQUE_SHORT = 'Предложенный вариант короткой ссылки уже существует.'
 WRONG_ORIGINAL_URL = 'Указано недопустимое имя для длинной ссылки'
 WRONG_SHORT = 'Указано недопустимое имя для короткой ссылки'
-SHORT_GENERATION_ERROR = 'Не удалось сгенерировать короткую ссылку'
+SHORT_GENERATION_ERROR = ('Не удалось сгенерировать короткую ссылку. '
+                          f'Сделано попыток: {ATTEMPTS_LIMIT}')
 
 
 class URLMap(db.Model):
@@ -38,24 +39,24 @@ class URLMap(db.Model):
         for _ in range(ATTEMPTS_LIMIT):
             short = ''.join(choices(
                 ALLOWED_CHARACTERS, k=GENERATED_SHORT_MAX_LENGTH))
-            if not URLMap.get(short=short):
+            if not URLMap.get(short):
                 return short
         raise URLMap.ShortGenerationError(SHORT_GENERATION_ERROR)
 
     @staticmethod
-    def get(**fields):
-        return URLMap.query.filter_by(**fields).first()
+    def get(short):
+        return URLMap.query.filter_by(short=short).first()
 
     @staticmethod
-    def get_or_404(**fields):
-        return URLMap.query.filter_by(**fields).first_or_404()
+    def get_or_404(short):
+        return URLMap.query.filter_by(short=short).first_or_404()
 
     @staticmethod
     def create(original, short=None, validate=True):
         if short and validate:
             if len(short) > SHORT_MAX_LENGTH or not fullmatch(PATTERN, short):
                 raise ValueError(WRONG_SHORT)
-            if URLMap.get(short=short):
+            if URLMap.get(short):
                 raise ValueError(NONUNIQUE_SHORT)
         if not short:
             short = URLMap.get_unique_short_id()

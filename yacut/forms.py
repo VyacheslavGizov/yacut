@@ -42,5 +42,5 @@ class URLShortenerForm(FlaskForm):
 
     def validate_custom_id(form, field):
         short = field.data
-        if not short or URLMap.get(short=short):
+        if short and URLMap.get(short):
             raise ValidationError(NONUNIQUE_SHORT)
