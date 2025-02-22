@@ -1,9 +1,6 @@
-from http import HTTPStatus
-
-from flask import abort, redirect, render_template
+from flask import redirect, render_template, flash
 
 from . import app
-from .exceptions import ShortGenerationError
 from .forms import URLShortenerForm
 from .models import URLMap
 
@@ -14,18 +11,20 @@ def shortener_view():
     if not form.validate_on_submit():
         return render_template('index.html', form=form)
     try:
-        url_map = URLMap.create(
-            short=form.custom_id.data,
-            original=form.original_link.data
+        return render_template(
+            'index.html',
+            form=form,
+            short_url=URLMap.create(
+                short=form.custom_id.data,
+                original=form.original_link.data,
+                validate=False
+            ).get_short_url()
         )
-    except ValueError:
+    except (ValueError, URLMap.ShortGenerationError) as error:
+        flash(str(error))
         return render_template('index.html', form=form)
-    except ShortGenerationError:
-        abort(HTTPStatus.INTERNAL_SERVER_ERROR)
-    return render_template(
-        'index.html', form=form, short=url_map.get_short_url())
 
 
 @app.route('/<short>')
 def redirect_view(short):
-    return redirect(URLMap.get_record_or_404(short=short).original)
+    return redirect(URLMap.get_or_404(short=short).original)

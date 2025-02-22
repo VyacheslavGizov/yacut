@@ -1,22 +1,18 @@
 from datetime import datetime
 from random import choices
 from re import fullmatch
-from time import time
 
 from flask import url_for
-from sqlalchemy.orm import validates
 
 from . import db
-from .exceptions import ShortGenerationError
 from settings import (
     ALLOWED_CHARACTERS,
+    ATTEMPTS_LIMIT,
     EXTRACT_FUNCTION,
     GENERATED_SHORT_MAX_LENGTH,
     ORIGINAL_URL_MAX_LENGTH,
-    ORIGINAL_URL_PATTERN,
+    PATTERN,
     SHORT_MAX_LENGTH,
-    SHORT_PATTERN,
-    WAITING_TIME,
 )
 
 
@@ -34,61 +30,38 @@ class URLMap(db.Model):
         db.String(SHORT_MAX_LENGTH), unique=True, nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
-    @validates('short')
-    def validate_short(self, key, short):
-        return URLMap.validate_link(
-            link=short,
-            pattern=SHORT_PATTERN,
-            max_length=SHORT_MAX_LENGTH,
-            message=WRONG_SHORT
-        )
-
-    @validates('original')
-    def validate_original(self, key, original):
-        return URLMap.validate_link(
-            link=original,
-            pattern=ORIGINAL_URL_PATTERN,
-            max_length=ORIGINAL_URL_MAX_LENGTH,
-            message=WRONG_ORIGINAL_URL
-        )
-
-    @staticmethod
-    def validate_link(pattern, link, max_length, message=WRONG_LINK):
-        if len(link) > max_length or not fullmatch(pattern, link):
-            raise ValueError(message)
-        return link
+    class ShortGenerationError(Exception):
+        pass
 
     @staticmethod
     def get_unique_short_id():
-        start_time = time()
-        while time() - start_time < WAITING_TIME:
+        for _ in range(ATTEMPTS_LIMIT):
             short = ''.join(choices(
                 ALLOWED_CHARACTERS, k=GENERATED_SHORT_MAX_LENGTH))
-            if not URLMap.get_record(short=short):
+            if not URLMap.get(short=short):
                 return short
-        else:
-            raise ShortGenerationError(SHORT_GENERATION_ERROR)
+        raise URLMap.ShortGenerationError(SHORT_GENERATION_ERROR)
 
-    @classmethod
-    def _get_filter_by(model, **fields):
-        return model.query.filter_by(**fields)
+    @staticmethod
+    def get(**fields):
+        return URLMap.query.filter_by(**fields).first()
 
-    @classmethod
-    def get_record(model, **fields):
-        return model._get_filter_by(**fields).first()
+    @staticmethod
+    def get_or_404(**fields):
+        return URLMap.query.filter_by(**fields).first_or_404()
 
-    @classmethod
-    def get_record_or_404(model, **fields):
-        return model._get_filter_by(**fields).first_or_404()
-
-    @classmethod
-    def create(model, original, short=None):
-        if short:
-            if model.get_record(short=short):
+    @staticmethod
+    def create(original, short=None, validate=True):
+        if short and validate:
+            if len(short) > SHORT_MAX_LENGTH or not fullmatch(PATTERN, short):
+                raise ValueError(WRONG_SHORT)
+            if URLMap.get(short=short):
                 raise ValueError(NONUNIQUE_SHORT)
-        else:
-            short = model.get_unique_short_id()
-        record = model(short=short, original=original)
+        if not short:
+            short = URLMap.get_unique_short_id()
+        if validate and len(original) > ORIGINAL_URL_MAX_LENGTH:
+            raise ValueError(WRONG_ORIGINAL_URL)
+        record = URLMap(short=short, original=original)
         db.session.add(record)
         db.session.commit()
         return record

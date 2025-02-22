@@ -6,8 +6,8 @@ from wtforms.validators import DataRequired, Length, Optional, URL, Regexp
 from .models import NONUNIQUE_SHORT, URLMap
 from settings import (
     ORIGINAL_URL_MAX_LENGTH,
+    PATTERN,
     SHORT_MAX_LENGTH,
-    SHORT_PATTERN
 )
 
 
@@ -35,11 +35,12 @@ class URLShortenerForm(FlaskForm):
         validators=[
             Optional(),
             Length(max=SHORT_MAX_LENGTH, message=LENGTH_MESSAGE),
-            Regexp(SHORT_PATTERN, message=WRONG_SHORT)
+            Regexp(PATTERN, message=WRONG_SHORT)
         ]
     )
     submit = SubmitField(SEND)
 
     def validate_custom_id(form, field):
-        if URLMap.get_record(short=field.data):
+        short = field.data
+        if not short or URLMap.get(short=short):
             raise ValidationError(NONUNIQUE_SHORT)

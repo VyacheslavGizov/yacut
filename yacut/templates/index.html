@@ -35,10 +35,11 @@
         <div class="row ">
           <div class="col-sm"></div>
             <div class="col-sm">
-              {% if short %}
+              {{ error_macros(get_flashed_messages()) }}
+              {% if short_url %}
                 <h5 class="text-center">
                   Ваша новая ссылка готова: </br>
-                  <a href="{{ short }}">{{ short }}</a>
+                  <a href="{{ short_url }}">{{ short_url }}</a>
                 </h5>
               {% endif %}
           </div>

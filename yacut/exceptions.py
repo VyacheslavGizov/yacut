@@ -12,7 +12,3 @@ class APIException(Exception):
 
     def to_dict(self):
         return dict(message=self.message)
-
-
-class ShortGenerationError(Exception):
-    pass
